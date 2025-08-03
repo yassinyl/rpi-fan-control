@@ -4,7 +4,7 @@ A Python script to intelligently control the Raspberry Pi fan based on CPU tempe
 
 ---
 
-## Features
+## 🔧 Features
 
 - **Variable Speed:** Adjusts fan speed based on CPU temperature thresholds.
 - **CPU Load Protection:** Forces the fan to 100% speed when CPU usage is high.
@@ -16,26 +16,38 @@ A Python script to intelligently control the Raspberry Pi fan based on CPU tempe
 
 ---
 
-## Automatic Installation
+## 🚀 Automatic Installation
 
-For a fresh setup, this single command will clone the repository and run the installation script. It will install all necessary software and configure the service to run automatically.
+For a fresh setup, run the following command:
 
 ```bash
-git clone [https://github.com/yassinyl/rpi-fan-control.git](https://github.com/yassinyl/rpi-fan-control.git) && cd rpi-fan-control && sudo bash install.sh
+git clone https://github.com/yassinyl/rpi-fan-control.git && cd rpi-fan-control && sudo bash install.sh
 
-After installation, the project files will be located in /home/pi/rpi-fan-control. You can modify the config.json file in that directory to tune the settings.
-Managing the Service
-After installation, you can use these simple commands to manage the service:
- * Check Status:
-   fan-status
+After installation, the project files will be located in:
 
- * Stop the Service:
-   fan-stop
+/home/pi/rpi-fan-control
 
- * Restart the Service (after a config change):
-   fan-restart
+You can modify the config.json file in that directory to tune the settings.
 
- * View Live Logs:
-   fan-logs
 
-(Note: You may need to run source ~/.bashrc or restart your terminal once for these commands to become active.)
+---
+
+🛠️ Managing the Service
+
+✅ Check Status
+
+fan-status
+
+⛔ Stop the Service
+
+fan-stop
+
+🔄 Restart the Service (after config change)
+
+fan-restart
+
+📺 View Live Logs
+
+fan-logs
+
+> Note: You may need to run source ~/.bashrc or restart your terminal once for these commands to become active.
