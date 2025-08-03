@@ -6,28 +6,43 @@ set -e
 echo "--- Starting Fan Control Installation ---"
 
 # 1. Update package list and install dependencies
-echo "[1/4] Updating dependencies..."
+echo "[1/5] Updating dependencies..."
 sudo apt-get update
 sudo apt-get install -y python3 git python3-rpi.gpio python3-psutil
 
 # 2. Correct file permissions
-# The script is run from inside the cloned directory.
-echo "[2/4] Correcting file permissions..."
+echo "[2/5] Correcting file permissions for the 'pi' user..."
 sudo chown -R pi:pi .
-# Making scripts executable as requested
 chmod +x pwm-fan-control.py install.sh
 
 # 3. Setup the systemd service
-echo "[3/4] Setting up the systemd service..."
+echo "[3/5] Setting up the systemd service..."
 sudo cp fan_control.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable fan_control.service
 
-# 4. Start the service
-echo "[4/4] Starting the fan control service..."
+# 4. Add command aliases for easy management
+echo "[4/5] Setting up convenient command aliases..."
+BASHRC_FILE="/home/pi/.bashrc"
+# Check if aliases are not already added to prevent duplicates
+if ! grep -q "### RPi Fan Control Aliases" "$BASHRC_FILE"; then
+  echo '' >> "$BASHRC_FILE"
+  echo '### RPi Fan Control Aliases' >> "$BASHRC_FILE"
+  echo "alias fan-status='sudo systemctl status fan_control.service'" >> "$BASHRC_FILE"
+  echo "alias fan-restart='sudo systemctl restart fan_control.service'" >> "$BASHRC_FILE"
+  echo "alias fan-stop='sudo systemctl stop fan_control.service'" >> "$BASHRC_FILE"
+  echo "alias fan-logs='tail -f /home/pi/rpi-fan-control/fan_log.txt'" >> "$BASHRC_FILE"
+  echo "Aliases added to $BASHRC_FILE"
+else
+  echo "Aliases already exist. Skipping."
+fi
+
+# 5. Start the service
+echo "[5/5] Starting the fan control service..."
 sudo systemctl restart fan_control.service
 
 echo ""
 echo "--- Installation Complete! ---"
-echo "The fan control service is now active and will start automatically on boot."
-echo "To check the status, run: sudo systemctl status fan_control.service"
+echo "The fan control service is now active."
+echo "Aliases (fan-status, fan-restart, fan-stop, fan-logs) are available."
+echo "Please run 'source ~/.bashrc' or restart your terminal to use them."
