@@ -32,9 +32,14 @@ if ! grep -q "### RPi Fan Control Aliases" "$BASHRC_FILE"; then
   echo "alias fan-restart='sudo systemctl restart fan_control.service'" >> "$BASHRC_FILE"
   echo "alias fan-stop='sudo systemctl stop fan_control.service'" >> "$BASHRC_FILE"
   echo "alias fan-logs='tail -f /home/pi/rpi-fan-control/fan_log.txt'" >> "$BASHRC_FILE"
-  echo "Aliases added to $BASHRC_FILE"
+  # Using a function for fan-full to accept an argument
+  echo 'fan-full() {' >> "$BASHRC_FILE"
+  echo '    # Runs fan at full speed for a custom duration (default 60s)' >> "$BASHRC_FILE"
+  echo '    python3 /home/pi/rpi-fan-control/pwm-fan-control.py full "$1"' >> "$BASHRC_FILE"
+  echo '}' >> "$BASHRC_FILE"
+  echo "Aliases and functions added to $BASHRC_FILE"
 else
-  echo "Aliases already exist. Skipping."
+  echo "Aliases and functions already exist. Skipping."
 fi
 
 # 5. Start the service
@@ -44,5 +49,5 @@ sudo systemctl restart fan_control.service
 echo ""
 echo "--- Installation Complete! ---"
 echo "The fan control service is now active."
-echo "Aliases (fan-status, fan-restart, fan-stop, fan-logs) are available."
+echo "Aliases (fan-status, fan-restart, etc.) are available."
 echo "Please run 'source ~/.bashrc' or restart your terminal to use them."
