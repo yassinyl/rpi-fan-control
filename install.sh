@@ -1,57 +1,46 @@
 #!/bin/bash
+set -e
+
+# The final, permanent location for the application files
+INSTALL_DIR="/home/pi/rpi-fan-control"
 
 echo "--- Starting RPi Fan Control Installation ---"
 
-# Step 1: Install dependencies
+# 1. Install dependencies
 echo "[1/4] Installing dependencies..."
-sudo apt update
-sudo apt install -y python3 python3-rpi.gpio python3-psutil git
+sudo apt-get update
+sudo apt-get install -y python3 git python3-rpi.gpio python3-psutil
 
-# Step 2: Fix permissions
-echo "[2/4] Correcting file permissions..."
-chmod +x pwm-fan-control.py
+# 2. Create install directory and copy files from the cloned repo
+echo "[2/4] Copying application files to $INSTALL_DIR..."
+sudo mkdir -p "$INSTALL_DIR"
+sudo cp ./pwm-fan-control.py "$INSTALL_DIR/"
+sudo cp ./config.json "$INSTALL_DIR/"
 
-# Step 3: Set up systemd service
-echo "[3/4] Setting up the systemd service..."
-SERVICE_PATH="/etc/systemd/system/fan_control.service"
+# 3. CRITICAL FIX: Ensure the installed files are owned by the 'pi' user
+echo "[3/4] Setting correct file permissions..."
+sudo chown -R pi:pi "$INSTALL_DIR"
 
-sudo bash -c "cat > $SERVICE_PATH" <<EOF
-[Unit]
-Description=PWM Fan Control Service
-After=multi-user.target
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/python3 /home/$USER/rpi-fan-control/pwm-fan-control.py auto
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
+# 4. Setup and start the systemd service
+echo "[4/4] Setting up and starting the systemd service..."
+sudo cp ./fan_control.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable fan_control.service
 sudo systemctl restart fan_control.service
 
-# Step 4: Set up aliases
-echo "[4/4] Setting up aliases and starting the service..."
+# 5. Add aliases to .bashrc if not present
+BASHRC="/home/pi/.bashrc"
+if ! grep -q "### RPi Fan Control Aliases" "$BASHRC"; then
+  echo "" >> "$BASHRC"
+  echo "### RPi Fan Control Aliases" >> "$BASHRC"
+  echo "alias fan-status='sudo systemctl status fan_control.service'" >> "$BASHRC"
+  echo "alias fan-restart='sudo systemctl restart fan_control.service'" >> "$BASHRC"
+  echo "alias fan-stop='sudo systemctl stop fan_control.service'" >> "$BASHRC"
+  echo "alias fan-logs='tail -f $INSTALL_DIR/fan_log.txt'" >> "$BASHRC"
+  echo "fan-full() { python3 $INSTALL_DIR/pwm-fan-control.py full \"\$1\"; }" >> "$BASHRC"
+fi
 
-BASHRC_FILE="/home/$USER/.bashrc"
-ALIAS_MARKER="# >>> FAN CONTROL ALIASES >>>"
-
-# Remove old aliases if they exist
-sed -i "/$ALIAS_MARKER/,/# <<< FAN CONTROL ALIASES <<</d" "$BASHRC_FILE"
-
-# Append new aliases
-cat >> "$BASHRC_FILE" <<EOF
-$ALIAS_MARKER
-fan-full() { python3 /home/$USER/rpi-fan-control/pwm-fan-control.py full "\$1"; }
-fan-auto() { python3 /home/$USER/rpi-fan-control/pwm-fan-control.py auto; }
-fan-logs() { tail -f /home/$USER/fan_log.txt; }
-# <<< FAN CONTROL ALIASES <<<
-EOF
-
-echo
+echo ""
 echo "--- Installation Complete! ---"
-echo "The fan control service is now running."
-echo "Aliases are available. Run 'source ~/.bashrc' or restart your terminal to use them."
+echo "The fan service is now running."
+echo "Aliases added to $BASHRC. Run 'source ~/.bashrc' or restart your terminal to use them."
