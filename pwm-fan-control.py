@@ -18,7 +18,7 @@ import psutil
 
 def load_config():
 
-    config_path = '/home/pi/config.json'
+    config_path = '/home/pi/rpi-fan-control/config.json'
 
     with open(config_path, 'r') as f:
 
@@ -72,7 +72,7 @@ def get_fan_speed(temp):
 
 def log(msg):
 
-    with open("/home/pi/fan_log.txt", "a") as f:
+    with open("/home/pi/rpi-fan-control/fan_log.txt", "a") as f:
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
