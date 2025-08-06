@@ -4,10 +4,12 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /home/pi/rpi-fan-control/pwm-fan-control.py
+ExecStart=/usr/bin/python3 /home/pi/pwm-fan-control.py
 Restart=on-failure
-StandardOutput=append:/home/pi/rpi-fan-control/fan_log.txt
-StandardError=inherit
+RestartSec=5s
+User=pi
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
