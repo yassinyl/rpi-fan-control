@@ -1,53 +1,103 @@
-# PWM Fan Control for Raspberry Pi
+# RPi Fan Control
 
-A Python script to intelligently control the Raspberry Pi fan based on CPU temperature and usage, designed to run as a systemd service.
+Python script to intelligently control a PWM fan on a Raspberry Pi using hardware PWM and CPU metrics.
 
 ---
 
 ## 🔧 Features
 
-- **Variable Speed:** Adjusts fan speed based on CPU temperature thresholds.
-- **CPU Load Protection:** Forces the fan to 100% speed when CPU usage is high.
-- **Startup Burst:** Runs the fan at full speed for 60 seconds on boot.
-- **Fully Configurable:** All parameters are managed via `config.json`.
-- **Robust & Efficient:** Uses `psutil` for reliable system monitoring.
-- **Automated Service:** Includes a `systemd` service file for automation.
-- **One-Command Install:** A comprehensive `install.sh` script handles everything from dependencies to service setup.
+- 🌀 **Variable Fan Speed**: Adjusts fan speed based on CPU temperature thresholds.
+- 🚀 **Startup Boost**: Runs fan at 100% for a few seconds at boot to cool any startup heat.
+- 💡 **CPU Load Response**: If CPU usage exceeds a set threshold, fan runs at 100% temporarily.
+- ⚙️ **Hardware PWM**: Uses Raspberry Pi's hardware PWM via `pigpio` on GPIO12 (PWM0).
+- 📁 **Custom Config**: Easily configure behavior via `config.json`.
+- 📋 **Systemd Integration**: Runs as a service in the background.
+- 🧰 **Convenient Aliases**: Quick commands for status, logs, and control.
 
 ---
 
-## 🚀 Automatic Installation
-
-For a fresh setup, run the following command:
+## 📦 Installation
 
 ```bash
-git clone https://github.com/yassinyl/rpi-fan-control.git && cd rpi-fan-control && sudo bash install.sh
-
-After installation, the project files will be located in:
-
-/home/pi/rpi-fan-control
-
-You can modify the config.json file in that directory to tune the settings.
-
+git clone https://github.com/yassinyl/rpi-fan-control.git
+cd rpi-fan-control
+chmod +x install.sh
+./install.sh
+source ~/.bashrc
+```
 
 ---
 
-🛠️ Managing the Service
+## 🛠 Configuration
 
-✅ Check Status
+Edit the `config.json` file to set your fan thresholds, PWM frequency, polling interval, etc.
 
-fan-status
+```json
+{
+  "gpio_pin": 12,
+  "pwm_freq": 25000,
+  "poll_interval": 3,
+  "hysteresis": 3,
+  "cpu_usage_threshold": 85,
+  "startup_duration": 30,
+  "fan_levels": [
+    { "limit": 48, "speed": 0 },
+    { "limit": 55, "speed": 30 },
+    { "limit": 60, "speed": 50 },
+    { "limit": 70, "speed": 70 },
+    { "limit": 90, "speed": 90 }
+  ]
+}
+```
 
-⛔ Stop the Service
+---
 
-fan-stop
+## 🚀 Aliases
 
-🔄 Restart the Service (after config change)
+These are added automatically to your `.bashrc`:
 
-fan-restart
+```bash
+fan-status     # Check systemd service status
+fan-restart    # Restart the fan service
+fan-stop       # Stop the fan service
+fan-logs       # Tail the fan log live
+```
 
-📺 View Live Logs
+---
 
-fan-logs
+## 📂 File Structure
 
-> Note: You may need to run source ~/.bashrc or restart your terminal once for these commands to become active.
+```
+rpi-fan-control/
+│
+├── pwm-fan-control.py      # Main control script
+├── config.json             # Configurable fan logic
+├── fan_control.service     # systemd service file
+├── install.sh              # Easy setup script
+└── fan_log.txt             # Runtime log file (auto-created)
+```
+
+---
+
+## 📌 Notes
+
+- Make sure the `pigpiod` daemon is enabled on boot:
+  
+  ```bash
+  sudo systemctl enable pigpiod
+  sudo systemctl start pigpiod
+  ```
+
+- Uses GPIO 12 (PWM0) for hardware PWM. Ensure your fan supports PWM input and is wired correctly.
+
+---
+
+## 📃 License
+
+MIT License
+
+---
+
+## 💬 Support
+
+For issues or suggestions, open an [Issue](https://github.com/yassinyl/rpi-fan-control/issues).
