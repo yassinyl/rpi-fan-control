@@ -18,7 +18,7 @@ import psutil
 
 def load_config():
 
-    config_path = '/home/pi/rpi-fan-control/config.json'
+    config_path = '/home/pi/config.json'
 
     with open(config_path, 'r') as f:
 
