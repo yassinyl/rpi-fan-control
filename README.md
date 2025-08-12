@@ -67,7 +67,10 @@ startup_duration → Time in seconds at 100% speed after boot.
 
 ---
 
-🚀 fan-status     # Check service status
+🚀 Aliases
+Added to .bashrc:
+
+fan-status     # Check service status
 
 fan-restart    # Restart service
 
