@@ -18,15 +18,16 @@ Python script to control a PWM fan on a Raspberry Pi 4 using hardware PWM and CP
 ---
 
 ## 📦 Installation
-```bash
+```
 git clone https://github.com/yourusername/rpi-fan-control-custom.git
 cd rpi-fan-control-custom
 chmod +x install.sh
 ./install.sh
+```
 
-```bash
+```
 source ~/.bashrc
-
+```
 
 ---
 
