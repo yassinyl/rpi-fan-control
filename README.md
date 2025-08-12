@@ -73,8 +73,10 @@ Added to .bashrc:
 
 fan-status     # Check service status
 fan-restart    # Restart service
+fan-start      # Start service
 fan-stop       # Stop service
-fan-logs       # Live logs
+fan-log        # Live logs
+fan-live       # Live fan speed and temperature monitoring
 
 
 ---
