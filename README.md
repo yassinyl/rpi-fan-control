@@ -35,6 +35,7 @@ source ~/.bashrc
 
 Edit config.json to suit your needs:
 
+```
 {
   "logging_enabled": false,
   "gpio_pin": 12,
@@ -48,6 +49,7 @@ Edit config.json to suit your needs:
   "rpm_min": 30,
   "rpm_max": 100
 }
+```
 
 Key Parameters:
 
