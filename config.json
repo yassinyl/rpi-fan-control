@@ -1,0 +1,13 @@
+{
+  "logging_enabled": false,
+  "gpio_pin": 12,
+  "pwm_freq": 25000,
+  "poll_interval": 3,
+  "hysteresis": 3,
+  "cpu_usage_threshold": 70,
+  "startup_duration": 10,
+  "temp_low": 45,
+  "temp_high": 70,
+  "rpm_min": 30,
+  "rpm_max": 100
+}
