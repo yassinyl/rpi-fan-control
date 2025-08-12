@@ -67,15 +67,16 @@ startup_duration → Time in seconds at 100% speed after boot.
 
 ---
 
-🚀 Aliases
+🚀 fan-status     # Check service status
 
-Added to .bashrc:
-
-fan-status     # Check service status
 fan-restart    # Restart service
+
 fan-start      # Start service
+
 fan-stop       # Stop service
+
 fan-log        # Live logs
+
 fan-live       # Live fan speed and temperature monitoring
 
 
