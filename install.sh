@@ -1,45 +1,45 @@
+---
+
+**install.sh**
+```bash
 #!/bin/bash
-set -e
 
-INSTALL_DIR="/home/pi/rpi-fan-control"
-SERVICE_FILE="fan_control.service"
+SERVICE_NAME="fan.control.service"
+SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
+SCRIPT_PATH="/home/pi/pwm-fan-control.py"
+CONFIG_PATH="/home/pi/config.json"
+LOG_PATH="/home/pi/fan_log.txt"
 
-echo "--- Starting RPi Fan Control Installation ---"
+echo "[INFO] Installing RPi Fan Control..."
 
-# 1. Install dependencies
-echo "[1/5] Installing dependencies..."
-sudo apt-get update
-sudo apt-get install -y python3 python3-psutil pigpio git
+# Copy service file
+sudo cp "$SERVICE_NAME" "$SERVICE_PATH"
+sudo chmod 644 "$SERVICE_PATH"
 
-# 2. Copy files
-echo "[2/5] Copying files to $INSTALL_DIR..."
-mkdir -p "$INSTALL_DIR"
-cp pwm-fan-control.py config.json "$INSTALL_DIR"
-cp fan_control.service "$INSTALL_DIR"
+# Copy script and config to /home/pi
+cp pwm-fan-control.py "$SCRIPT_PATH"
+cp config.json "$CONFIG_PATH"
+touch "$LOG_PATH"
 
-# 3. Install systemd service
-echo "[3/5] Setting up systemd service..."
-sudo cp "$INSTALL_DIR/$SERVICE_FILE" /etc/systemd/system/
-sudo systemctl daemon-reexec
+# Enable pigpio daemon
+sudo systemctl enable pigpiod
+sudo systemctl start pigpiod
+
+# Enable and start fan service
 sudo systemctl daemon-reload
-sudo systemctl enable fan_control.service
-sudo systemctl restart fan_control.service
+sudo systemctl enable "$SERVICE_NAME"
+sudo systemctl start "$SERVICE_NAME"
 
-# 4. Create log file
-touch "$INSTALL_DIR/fan_log.txt"
-
-# 5. Add aliases to .bashrc
-echo "[4/5] Adding aliases to ~/.bashrc..."
-ALIAS_START="### RPi Fan Control Aliases"
-if ! grep -q "$ALIAS_START" ~/.bashrc; then
-    {
-        echo ""
-        echo "### RPi Fan Control Aliases"
-        echo "alias fan-status='sudo systemctl status fan_control.service'"
-        echo "alias fan-restart='sudo systemctl restart fan_control.service'"
-        echo "alias fan-stop='sudo systemctl stop fan_control.service'"
-        echo "alias fan-logs='tail -f $INSTALL_DIR/fan_log.txt'"
-    } >> ~/.bashrc
+# Add aliases to .bashrc if not present
+BASHRC="$HOME/.bashrc"
+if ! grep -q "fan-status" "$BASHRC"; then
+    echo "" >> "$BASHRC"
+    echo "# Fan Control Aliases" >> "$BASHRC"
+    echo "alias fan-status='systemctl status $SERVICE_NAME --no-pager -l'" >> "$BASHRC"
+    echo "alias fan-restart='sudo systemctl restart $SERVICE_NAME'" >> "$BASHRC"
+    echo "alias fan-stop='sudo systemctl stop $SERVICE_NAME'" >> "$BASHRC"
+    echo "alias fan-logs='tail -f $LOG_PATH'" >> "$BASHRC"
 fi
 
-echo "[5/5] Installation complete. Please run: source ~/.bashrc"
+echo "[INFO] Installation complete!"
+echo "Run: source ~/.bashrc"
