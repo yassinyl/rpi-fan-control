@@ -58,6 +58,13 @@ systemctl daemon-reload
 systemctl enable "$SERVICE_NAME"
 systemctl restart "$SERVICE_NAME"
 
+echo -e "${GREEN}[INFO] Installing fan-live tool...${NC}"
+
+if [ -f "fan-live.sh" ]; then
+    cp fan-live.sh /usr/local/bin/fan-live
+    chmod +x /usr/local/bin/fan-live
+fi
+
 echo -e "${GREEN}[INFO] Installing aliases...${NC}"
 
 if ! grep -q "fan-status" "$BASHRC"; then
@@ -68,8 +75,7 @@ if ! grep -q "fan-status" "$BASHRC"; then
     echo "alias fan-start='sudo systemctl start $SERVICE_NAME'" >> "$BASHRC"
     echo "alias fan-stop='sudo systemctl stop $SERVICE_NAME'" >> "$BASHRC"
     echo "alias fan-log='tail -f $LOG_PATH'" >> "$BASHRC"
-
-echo "alias fan-live='while true; do speed=\$((\$(pigs gdc 12)/10000)); temp=\$(awk \"{print \\\$1/1000}\" /sys/class/thermal/thermal_zone0/temp); echo \"\$(date +\"[%Y-%m-%d %H:%M:%S]\") Temp[\$temp°C] Speed[\$speed%]\"; sleep 2; done'" >> "$BASHRC"
+    echo "alias fan-live='/usr/local/bin/fan-live'" >> "$BASHRC"
 
     echo -e "${GREEN}[INFO] Aliases added${NC}"
 fi
