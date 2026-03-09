@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SERVICE_NAME="fan_control.service"
-USER_HOME="/home/pi" # Change if needed
+USER_HOME="/home/pi"
 SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
 SCRIPT_PATH="$USER_HOME/pwm-fan-control.py"
 CONFIG_PATH="$USER_HOME/config.json"
@@ -26,26 +26,39 @@ for f in "$SERVICE_NAME" "pwm-fan-control.py" "config.json"; do
   fi
 done
 
-sudo cp "$SERVICE_NAME" "$SERVICE_PATH"
-sudo chmod 644 "$SERVICE_PATH"
-echo -e "${GREEN}[INFO] Service file copied to $SERVICE_PATH${NC}"
+echo -e "${GREEN}[INFO] Installing dependencies...${NC}"
+apt-get update
+apt-get install -y python3 python3-psutil python3-pip git build-essential
+
+echo -e "${GREEN}[INFO] Installing pigpio...${NC}"
+
+if ! command -v pigpiod &> /dev/null; then
+    git clone https://github.com/joan2937/pigpio /tmp/pigpio
+    cd /tmp/pigpio
+    make
+    make install
+fi
+
+systemctl enable pigpiod 2>/dev/null
+systemctl start pigpiod 2>/dev/null || pigpiod
+
+echo -e "${GREEN}[INFO] Installing Python pigpio module...${NC}"
+pip3 install pigpio --break-system-packages
+
+echo -e "${GREEN}[INFO] Installing files...${NC}"
 
 cp pwm-fan-control.py "$SCRIPT_PATH"
 cp config.json "$CONFIG_PATH"
 touch "$LOG_PATH"
 
-if ! command -v pigpiod &> /dev/null; then
-    echo -e "${GREEN}[INFO] pigpiod not found. Installing...${NC}"
-    apt-get update
-    apt-get install -y pigpio
-fi
-
-systemctl enable pigpiod
-systemctl start pigpiod
+cp "$SERVICE_NAME" "$SERVICE_PATH"
+chmod 644 "$SERVICE_PATH"
 
 systemctl daemon-reload
 systemctl enable "$SERVICE_NAME"
-systemctl start "$SERVICE_NAME"
+systemctl restart "$SERVICE_NAME"
+
+echo -e "${GREEN}[INFO] Installing aliases...${NC}"
 
 if ! grep -q "fan-status" "$BASHRC"; then
     echo "" >> "$BASHRC"
@@ -55,10 +68,10 @@ if ! grep -q "fan-status" "$BASHRC"; then
     echo "alias fan-start='sudo systemctl start $SERVICE_NAME'" >> "$BASHRC"
     echo "alias fan-stop='sudo systemctl stop $SERVICE_NAME'" >> "$BASHRC"
     echo "alias fan-log='tail -f $LOG_PATH'" >> "$BASHRC"
-    echo "alias fan-live='while true; do speed=\$(( \\$(pigs gdc 12) / 10000 )); temp=\\$(awk "{print \\$1/1000}" /sys/class/thermal/thermal_zone0/temp); echo "\\$(date "+[%Y-%m-%d %H:%M:%S]") Temp[\$temp°C] Speed[\$speed%]"; sleep 2; done'" >> "$BASHRC"
-    echo -e "${GREEN}[INFO] Aliases added to $BASHRC${NC}"
-else
-    echo "[INFO] Aliases already exist in $BASHRC"
+
+echo "alias fan-live='while true; do speed=\$((\$(pigs gdc 12)/10000)); temp=\$(awk \"{print \\\$1/1000}\" /sys/class/thermal/thermal_zone0/temp); echo \"\$(date +\"[%Y-%m-%d %H:%M:%S]\") Temp[\$temp°C] Speed[\$speed%]\"; sleep 2; done'" >> "$BASHRC"
+
+    echo -e "${GREEN}[INFO] Aliases added${NC}"
 fi
 
 echo -e "${GREEN}[INFO] Installation complete!${NC}"
