@@ -1,25 +1,14 @@
 [Unit]
-
 Description=PWM Fan Control Service
-
-After=multi-user.target
+After=network.target
 
 [Service]
-
 Type=simple
-
+ExecStartPre=/usr/local/bin/pigpiod
 ExecStart=/usr/bin/python3 /home/pi/pwm-fan-control.py
-
-Restart=on-failure
-
-RestartSec=5s
-
+Restart=always
+RestartSec=5
 User=pi
 
-StandardOutput=tty
-
-StandardError=tty
-
 [Install]
-
 WantedBy=multi-user.target
