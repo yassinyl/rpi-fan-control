@@ -6,6 +6,7 @@
   "hysteresis": 3,
   "cpu_usage_threshold": 70,
   "startup_duration": 10,
+  "cpu_boost_duration": 10,
   "temp_low": 45,
   "temp_high": 70,
   "rpm_min": 30,
