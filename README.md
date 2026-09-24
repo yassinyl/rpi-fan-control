@@ -1,119 +1,68 @@
----
-
 # RPi Fan Control
 
-Python script to control a PWM fan on a Raspberry Pi 4 using hardware PWM and CPU/temperature logic.
+A small, fail-safe PWM fan controller for a **Raspberry Pi 4**. It reads the
+CPU thermal zone, controls a 4-wire fan through `pigpiod`, and runs as a
+systemd service.
 
----
+## Hardware
 
-## 🔧 Features
-- 🌀 **Variable Fan Speed**: Adjusts speed between `rpm_min` and `rpm_max` based on CPU temperature.
-- 🚀 **Startup Boost**: Runs fan at 100% for a short time at boot.
-- 💡 **CPU Load Trigger**: Runs fan at 100% if CPU usage exceeds threshold.
-- ⚙️ **Hardware PWM**: Uses GPIO12 (PWM0) via `pigpio`.
-- 📁 **Custom Config**: All settings in `config.json`.
-- 📋 **Systemd Service**: Auto start at boot.
-- 🧰 **Optional Logging**: Enable/disable in config.
+The default configuration uses **BCM GPIO 12** (physical pin 32), which is a
+hardware PWM-capable pin on Raspberry Pi 4. Connect the fan's PWM input to that
+pin and power the fan from an appropriate supply. Do not power a fan directly
+from a GPIO pin; use a suitable driver/level shifter where the fan requires it.
 
----
+> GPIO 12 and GPIO 18 share PWM channel 0; avoid using both for independent
+> PWM signals. GPIO numbering in `config.json` is BCM numbering, not physical
+> pin numbering.
 
-## 📦 Installation
-```
-git clone https://github.com/yassinyl/rpi-fan-control.git
-cd rpi-fan-control
+## Installation
+
+Run from a clone of this repository:
+
+```bash
 chmod +x install.sh
-./install.sh
+sudo ./install.sh
 ```
 
-```
-source ~/.bashrc
-```
+The installer installs the Python daemon in `/usr/local/lib/rpi-fan-control`,
+keeps configuration in `/etc/rpi-fan-control/config.json`, installs
+`pigpiod.service`, and enables both services. Re-running it preserves an
+existing configuration file.
 
----
+Useful commands:
 
-🛠 Configuration
-
-Edit config.json to suit your needs:
-
-```
-{
-  "logging_enabled": false,
-  "gpio_pin": 12,
-  "pwm_freq": 25000,
-  "poll_interval": 3,
-  "hysteresis": 3,
-  "cpu_usage_threshold": 70,
-  "startup_duration": 10,
-  "temp_low": 45,
-  "temp_high": 70,
-  "rpm_min": 30,
-  "rpm_max": 100
-}
+```bash
+sudo systemctl status fan_control.service
+sudo systemctl restart fan_control.service
+journalctl -u fan_control.service -f
+fan-live
 ```
 
-Key Parameters:
+## Configuration
 
-logging_enabled → Enable/disable log file writing.
+Edit `/etc/rpi-fan-control/config.json`, then restart the service. The daemon
+also re-reads valid configuration changes between polling cycles.
 
-temp_low / temp_high → Temperature range for speed scaling.
+| Setting | Meaning |
+| --- | --- |
+| `gpio_pin` | BCM hardware-PWM GPIO; default `12`. |
+| `pwm_freq` | PWM frequency in Hz; default `25000`, typical for 4-wire fans. |
+| `temp_low` / `temp_high` | Temperature range used for linear speed scaling. |
+| `rpm_min` / `rpm_max` | Minimum/maximum PWM duty percentages. |
+| `hysteresis` | Minimum temperature change before recalculating speed. |
+| `cpu_usage_threshold` | CPU usage percent that triggers a temporary 100% boost. |
+| `cpu_boost_duration` | Seconds a CPU-load boost remains active after the threshold is crossed. |
+| `startup_duration` | Seconds at 100% fan speed after service startup. |
+| `poll_interval` | Sensor polling period in seconds. |
+| `logging_enabled` | Enables informational messages in the system journal. |
 
-rpm_min / rpm_max → Minimum and maximum PWM % output.
+Invalid configuration is rejected without changing the current fan output. If a
+temperature reading or control cycle fails, the daemon requests 100% duty as a
+failsafe and writes an error to the journal.
 
-cpu_usage_threshold → Fan boost when CPU load is high.
+## Development checks
 
-startup_duration → Time in seconds at 100% speed after boot.
-
-
-
----
-
-🚀 Aliases
-Added to .bashrc:
-
-fan-status     # Check service status
-
-fan-restart    # Restart service
-
-fan-start      # Start service
-
-fan-stop       # Stop service
-
-fan-log        # Live logs
-
-fan-live       # Live fan speed and temperature monitoring
-
-
----
-
-📂 File Structure
-
-rpi-fan-control-custom/
-│
-├── pwm-fan-control.py   # Main script
-├── config.json          # Settings
-├── fan.control.service  # systemd service file
-├── install.sh           # Setup script
-└── fan_log.txt          # Log file (if enabled)
-
-
----
-
-📌 Notes
-
-Make sure pigpiod is running:
-
-
-sudo systemctl enable pigpiod
-sudo systemctl start pigpiod
-
-Uses GPIO 12 (PWM0) — ensure wiring is correct.
-
-
-
----
-
-📃 License
-
-MIT License
-
----
+```bash
+python3 -m unittest discover -s tests -v
+bash -n install.sh fan-live.sh
+```

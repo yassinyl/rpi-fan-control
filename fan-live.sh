@@ -1,20 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-while true; do
-temp=$(awk '{print $1/1000}' /sys/class/thermal/thermal_zone0/temp)
+CONFIG_PATH="${1:-/etc/rpi-fan-control/config.json}"
+GPIO_PIN=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["gpio_pin"])' "$CONFIG_PATH")
 
-speed=$(pigs gdc 12)
-speed=$((speed / 10000))
-
-cpu=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
-
-echo "--------------------------------"
-echo "Time       : $(date '+%H:%M:%S')"
-echo "CPU Usage  : ${cpu}%"
-echo "Temp       : ${temp}°C"
-echo "Fan Speed  : ${speed}%"
-echo "--------------------------------"
-
-sleep 2
-clear
+while :; do
+  temp=$(awk '{print $1 / 1000}' /sys/class/thermal/thermal_zone0/temp)
+  duty=$(pigs gdc "$GPIO_PIN")
+  printf '\033[H\033[2JTime       : %s\nCPU Temp   : %s°C\nFan Speed  : %s%%\nGPIO       : BCM %s\n' \
+    "$(date '+%H:%M:%S')" "$temp" "$((duty / 10000))" "$GPIO_PIN"
+  sleep 2
 done
