@@ -1,14 +1,14 @@
 [Unit]
-Description=PWM Fan Control Service
-After=network.target
+Description=PWM fan control for Raspberry Pi
+Wants=pigpiod.service
+After=pigpiod.service
 
 [Service]
 Type=simple
-ExecStartPre=/usr/local/bin/pigpiod
-ExecStart=/usr/bin/python3 /home/pi/pwm-fan-control.py
-Restart=always
+ExecStart=/usr/bin/python3 /usr/local/lib/rpi-fan-control/pwm-fan-control.py --config /etc/rpi-fan-control/config.json
+Restart=on-failure
 RestartSec=5
-User=pi
+User=root
 
 [Install]
 WantedBy=multi-user.target
