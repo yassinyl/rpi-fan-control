@@ -20,7 +20,7 @@ from a GPIO pin; use a suitable driver/level shifter where the fan requires it.
 1. On the Raspberry Pi, clone the repository and enter its directory:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/yassinyl/rpi-fan-control.git
 cd rpi-fan-control
 ```
 
