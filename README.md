@@ -17,17 +17,47 @@ from a GPIO pin; use a suitable driver/level shifter where the fan requires it.
 
 ## Installation
 
-Run from a clone of this repository:
+1. On the Raspberry Pi, clone the repository and enter its directory:
+
+```bash
+git clone <repository-url>
+cd rpi-fan-control
+```
+
+2. Review and, if needed, customize the default settings before the first
+   installation:
+
+```bash
+editor config.json
+```
+
+3. Make the installer executable and run it with administrator privileges:
 
 ```bash
 chmod +x install.sh
 sudo ./install.sh
 ```
 
-The installer installs the Python daemon in `/usr/local/lib/rpi-fan-control`,
-keeps configuration in `/etc/rpi-fan-control/config.json`, installs
-`pigpiod.service`, and enables both services. Re-running it preserves an
-existing configuration file.
+4. Confirm that the service started successfully:
+
+```bash
+sudo systemctl status fan_control.service
+```
+
+The installer updates the package list, installs `pigpio` and `python3-pigpio`,
+copies the Python daemon to `/usr/local/lib/rpi-fan-control`, and installs
+`fan-live` in `/usr/local/bin`. It copies the initial configuration to
+`/etc/rpi-fan-control/config.json`, installs `fan_control.service`, then enables
+and starts both `pigpiod.service` and `fan_control.service`. Re-running the
+installer preserves an existing configuration file.
+
+After installation, edit `/etc/rpi-fan-control/config.json` to change settings
+and restart the service for the change to take effect:
+
+```bash
+sudo editor /etc/rpi-fan-control/config.json
+sudo systemctl restart fan_control.service
+```
 
 Useful commands:
 
